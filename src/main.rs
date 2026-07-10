@@ -1,7 +1,7 @@
 use std::env;
 use std::path::Path;
 
-const VALID_STARTING_ARGUMENTS: [&str; 6] = [
+const VALID_FIRST_ARGUMENTS: [&str; 6] = [
     "add",
     "update",
     "delete",
@@ -12,23 +12,36 @@ const VALID_STARTING_ARGUMENTS: [&str; 6] = [
 
 const VALID_LIST_ARGUMENTS: [&str; 3] = ["done", "todo", "in-progress"];
 
-// Checks that first command provided is valid
-fn is_valid_arguments(arguments: &Vec<String>) -> (bool, &str) {
-    if arguments.len() == 0 {
+fn main() {
+    let todo_file = Path::new("todo.json");
+    if todo_file.exists() {
+        let command_line_arguments: Vec<String> = env::args().skip(1).collect();
+        let (is_valid_first_argument, error_message) =
+            validate_first_argument(&command_line_arguments);
+        match is_valid_first_argument {
+            true => handle_arguments(command_line_arguments), // Each command will validate itself later based on its own requirements, we just need a valid first command to proceed
+            false => println!("{error_message}"),
+        }
+    } else {
+        println!("ERROR: Missing todo.json in current directory. Create it and try again");
+    }
+}
+
+// Refactor to Result<(), &str> type for better success/error retrns
+fn validate_first_argument(arguments: &[String]) -> (bool, &str) {
+    if arguments.is_empty() {
         (false, "Error: Must provide at least one argument")
     } else {
         let first_arg = arguments[0].to_lowercase();
-        match VALID_STARTING_ARGUMENTS.contains(&first_arg.as_str()) {
+        match VALID_FIRST_ARGUMENTS.contains(&first_arg.as_str()) {
             true => (true, ""), // command is add, update, delete, mark-in-progress, mark-done or list
-            false => (
-                false,
-                "Error: You must provide a valid argument to this program",
-            ),
+            false => (false, "Error: Invalid first argument to this program"),
         }
     }
 }
 
-fn execute_argument(arguments: Vec<String>) {
+// Routes command to respective function handler
+fn handle_arguments(arguments: Vec<String>) {
     let first_arg = &arguments[0].to_lowercase();
     match first_arg.as_str() {
         "add" => handle_add(arguments),
@@ -54,7 +67,7 @@ fn handle_mark_in_progress(arguments: Vec<String>) {}
 
 fn handle_mark_done(arguments: Vec<String>) {}
 
-// This should check for additional arguments after list command, such as done, todo , in-progress and pass them off accordingly.
+// TODO This should check for additional arguments after list command, such as done, todo , in-progress and pass them off accordingly.
 fn handle_list(arguments: Vec<String>) {}
 
 fn handle_list_done(arguments: Vec<String>) {}
@@ -62,19 +75,3 @@ fn handle_list_done(arguments: Vec<String>) {}
 fn handle_list_todo(arguments: Vec<String>) {}
 
 fn handle_list_in_progress(arguments: Vec<String>) {}
-
-fn main() {
-    let todo_file = Path::new("todo.json");
-    if todo_file.exists() {
-        let command_line_arguments: Vec<String> = env::args().skip(1).collect();
-        let (is_valid_arguments, error_message) = is_valid_arguments(&command_line_arguments);
-        match is_valid_arguments {
-            true => execute_argument(command_line_arguments),
-            false => println!("{error_message}"),
-        }
-    } else {
-        println!(
-            "ERROR: You must have a todo.json file in the current directory to use. Create this file and then start the program again"
-        );
-    }
-}

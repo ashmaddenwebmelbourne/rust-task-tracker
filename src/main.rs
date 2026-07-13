@@ -17,13 +17,17 @@ fn main() {
     let todo_file = Path::new("todo.json");
     if todo_file.exists() {
         let todo_file_is_empty = fs::metadata(&todo_file).map(|metadata| metadata.len() == 0);
-        match todo_file_is_empty {
-            Ok(true) => create_blank_todo_list(), // Adds basic fields in JSON file so that all other functions behave as expected, if todo.json is empty
-            _ => (),
-        }
         let command_line_arguments: Vec<String> = env::args().skip(1).collect();
+
+        // Adds basic fields in JSON file so that all other functions behave as expected, if todo.json is empty
+        match todo_file_is_empty {
+            Ok(true) => create_blank_todo_list(),
+            _ => validate_todo_list_file(), // Need to exit with error message if the todo list is in the wrong format
+        }
+
+        // Each command will validate itself later based on its own requirements, we just need a valid first command to proceed
         match validate_first_argument(&command_line_arguments) {
-            Ok(()) => handle_arguments(command_line_arguments), // Each command will validate itself later based on its own requirements, we just need a valid first command to proceed
+            Ok(()) => handle_arguments(command_line_arguments),
             Err(e) => println!("{}", e),
         }
     } else {
@@ -79,6 +83,9 @@ fn create_blank_todo_list() {
 
     // Add JSON fields here
 }
+
+// The file may exist and may not be empty, but it may have incorrect data in it. It needs to be in the right format, mentioned above
+fn validate_todo_list_file() {}
 
 // these handle the functionality of the todo list, validating each command and argument(s) as needed
 // CHECK that arguments are correct for <arg> command

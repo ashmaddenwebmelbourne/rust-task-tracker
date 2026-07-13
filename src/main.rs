@@ -18,7 +18,7 @@ fn main() {
     if todo_file.exists() {
         let todo_file_is_empty = fs::metadata(&todo_file).map(|metadata| metadata.len() == 0);
         match todo_file_is_empty {
-            Ok(true) => create_blank_todo_list(),
+            Ok(true) => create_blank_todo_list(), // Adds basic fields in JSON file so that all other functions behave as expected, if todo.json is empty
             _ => (),
         }
         let command_line_arguments: Vec<String> = env::args().skip(1).collect();

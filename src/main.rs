@@ -1,6 +1,19 @@
+use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::path::Path;
+
+#[derive(Serialize, Deserialize)]
+struct Task {
+    id: u64,
+    name: String,
+    status: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TodoList {
+    tasks: Vec<Task>,
+}
 
 const VALID_FIRST_ARGUMENTS: [&str; 6] = [
     "add",
@@ -60,37 +73,40 @@ fn handle_arguments(arguments: Vec<String>) {
     }
 }
 
-// Handles the JSON file, ensuring it has the correct fields
-// When called this should set the following default fields in the JSON file, ready to be used as a todo list
-
-/*
-
-Note that taskName is an example placeholder value
-
-{
-  "tasks": {
-    "taskName": {
-      "id": 1,
-      "taskDescription": "Do something",
-      "status": "todo"
-    }
-  }
-}
-*/
-
 fn create_blank_todo_list() {
-    println!("Ready to add fields to JSON file");
-
-    // Add JSON fields here
+    let default_todo_list = TodoList { tasks: vec![] };
+    let json = serde_json::to_string_pretty(&default_todo_list).unwrap();
+    fs::write("todo.json", json).expect("Error: Failed to write to todo.json");
 }
 
 // The file may exist and may not be empty, but it may have incorrect data in it. It needs to be in the right format, mentioned above
 fn validate_todo_list_file() {}
 
-// these handle the functionality of the todo list, validating each command and argument(s) as needed
-// CHECK that arguments are correct for <arg> command
-// UPDATE JSON file
-fn handle_add(arguments: Vec<String>) {}
+// This doesn't work properly
+fn handle_add(arguments: Vec<String>) {
+    let todo_file_contents = fs::read_to_string("todo.json").unwrap();
+    let mut todo_list: TodoList = serde_json::from_str(&todo_file_contents).unwrap();
+    let task_name = &arguments[1];
+    let new_id = todo_list
+        .tasks
+        .iter()
+        .map(|task| task.id)
+        .max()
+        .unwrap_or(0);
+    if todo_list
+        .tasks
+        .iter()
+        .any(|task| task.name == String::from(task_name))
+    {
+        println!("Error: A task with this name already exists: {}", task_name);
+    } else {
+        todo_list.tasks.push(Task {
+            id: new_id,
+            name: arguments[1].clone(),
+            status: String::from("todo"),
+        });
+    }
+}
 
 fn handle_update(arguments: Vec<String>) {}
 

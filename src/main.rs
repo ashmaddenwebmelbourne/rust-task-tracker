@@ -1,3 +1,11 @@
+/*
+
+To do list:
+
+Get the add function to work and add a task. Can reuse the same logic for reading/writing/updating the file and fields
+
+*/
+
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -32,13 +40,11 @@ fn main() {
         let todo_file_is_empty = fs::metadata(&todo_file).map(|metadata| metadata.len() == 0);
         let command_line_arguments: Vec<String> = env::args().skip(1).collect();
 
-        // Adds basic fields in JSON file so that all other functions behave as expected, if todo.json is empty
         match todo_file_is_empty {
             Ok(true) => create_blank_todo_list(),
-            _ => validate_todo_list_file(), // Need to exit with error message if the todo list is in the wrong format
+            _ => validate_todo_list_file(),
         }
 
-        // Each command will validate itself later based on its own requirements, we just need a valid first command to proceed
         match validate_first_argument(&command_line_arguments) {
             Ok(()) => handle_arguments(command_line_arguments),
             Err(e) => println!("{}", e),

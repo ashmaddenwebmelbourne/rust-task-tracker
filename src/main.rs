@@ -1,3 +1,11 @@
+/*
+
+Todo
+Refactor the existing functions, especially main
+Use handle_add as a template for the other functions to modify todo.json
+
+*/
+
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -95,8 +103,8 @@ fn handle_add(arguments: Vec<String>) {
             name: task_name,
             status: "todo".to_string(),
         });
-        let json = serde_json::to_string_pretty(&todo_list).unwrap();
-        fs::write("todo.json", json).expect("Error: Failed to write to todo.json");
+        let updated_todo_list = serde_json::to_string_pretty(&todo_list).unwrap();
+        fs::write("todo.json", updated_todo_list).expect("Error: Failed to write to todo.json");
     }
 }
 

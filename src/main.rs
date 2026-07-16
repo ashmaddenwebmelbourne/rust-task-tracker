@@ -74,7 +74,7 @@ fn handle_arguments(arguments: Vec<String>) {
     let first_arg = &arguments[0].to_lowercase();
     match first_arg.as_str() {
         "add" => handle_add(&arguments),
-        "update" => handle_update(arguments),
+        "update" => handle_update(&arguments),
         "delete" => handle_delete(arguments),
         "mark-in-progress" => handle_mark_in_progress(arguments),
         "mark-done" => handle_mark_done(arguments),
@@ -110,7 +110,22 @@ fn handle_add(arguments: &[String]) {
     }
 }
 
-fn handle_update(_arguments: Vec<String>) {}
+fn handle_update(arguments: &[String]) {
+    // let contents = fs::read_to_string("todo.json").unwrap();
+    // let mut todo_list: TodoList = serde_json::from_str(&contents).unwrap();
+    // Looks like most of the functions will need to read the file contents and make a todo_list. This could be moved into its own function to avoid duplication
+
+    // Update is done via passing in the id
+    // Need to check that the value at arguments[1] is a valid number
+    // If it is a valid number, need to check that it exists in the todo.json file in the tasks array
+    // If it does, need to then check that the update name is not empty (They need to pass in something to update it with)
+
+    //if todo_list.tasks.iter().any(|t| t.id == task_id) {
+    // Update task
+    //} else {
+    //println!("Error: There is no task with the ID: {task_id}");
+    //}
+}
 
 fn handle_delete(_arguments: Vec<String>) {}
 

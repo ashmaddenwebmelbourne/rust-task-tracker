@@ -1,9 +1,6 @@
 /*
-
 Todo
-Refactor the existing functions, especially main
-Use handle_add as a template for the other functions to modify todo.json
-
+Complete handle_delete function
 */
 
 use serde::{Deserialize, Serialize};
@@ -11,7 +8,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Task {
     id: u64,
     name: String,
@@ -55,8 +52,7 @@ fn main() {
     }
 }
 
-// END MAIN
-
+// Checks that the first command line argument passed to the program is add, update, delete, mark-in-progress, mark-done or list. Errors otherwise.
 fn valid_first_argument(arguments: &[String]) -> Result<(), &str> {
     if arguments.is_empty() {
         Err("Error: Must provide at least one argument")
@@ -70,6 +66,7 @@ fn valid_first_argument(arguments: &[String]) -> Result<(), &str> {
     }
 }
 
+// If the first command line argument is a valid argument, this function hands the command line arguments off to their respective handlers for execution.
 fn handle_arguments(arguments: Vec<String>) {
     let first_arg = &arguments[0].to_lowercase();
     match first_arg.as_str() {
@@ -83,18 +80,31 @@ fn handle_arguments(arguments: Vec<String>) {
     }
 }
 
+// If todo.json is empty, this function creates the default template, which contains an empty tasks array, to begin putting tasks into
 fn create_blank_todo_list() {
     let default_todo_list = TodoList { tasks: vec![] };
     let json = serde_json::to_string_pretty(&default_todo_list).unwrap();
     fs::write("todo.json", json).expect("Error: Failed to write to todo.json");
 }
 
-// The file may exist and may not be empty, but it may have incorrect data in it. It needs to be in the right format, mentioned above
+// If todo.json is not empty, this function checks that the file is in the correct format.
 fn validate_todo_list_file() {}
 
-fn handle_add(arguments: &[String]) {
+// Reads the todo.json file and returns a parsed data structure representing the JSON file
+fn read_todo() -> TodoList {
     let contents = fs::read_to_string("todo.json").unwrap();
-    let mut todo_list: TodoList = serde_json::from_str(&contents).unwrap();
+    serde_json::from_str(&contents).unwrap()
+}
+
+// Takes the updated, parsed data structure representing the JSON file and writes to todo.json
+fn write_todo(todo_list: &TodoList) {
+    let updated_todo_list = serde_json::to_string_pretty(&todo_list).unwrap();
+    fs::write("todo.json", updated_todo_list).expect("Error: Failed to write to todo.json");
+}
+
+// Adds a task to todo.json
+fn handle_add(arguments: &[String]) {
+    let mut todo_list = read_todo();
     let id = todo_list.tasks.iter().map(|t| t.id).max().unwrap_or(0) + 1;
     let task_name = arguments[1..].join(" ");
     if todo_list.tasks.iter().any(|t| t.name == task_name) {
@@ -105,26 +115,25 @@ fn handle_add(arguments: &[String]) {
             name: task_name,
             status: "todo".to_string(),
         });
-        let updated_todo_list = serde_json::to_string_pretty(&todo_list).unwrap();
-        fs::write("todo.json", updated_todo_list).expect("Error: Failed to write to todo.json");
+        println!("Task added to todo list");
+        write_todo(&todo_list);
     }
 }
 
+// Update a task name via passing in its ID and a new name
 fn handle_update(arguments: &[String]) {
-    // let contents = fs::read_to_string("todo.json").unwrap();
-    // let mut todo_list: TodoList = serde_json::from_str(&contents).unwrap();
-    // Looks like most of the functions will need to read the file contents and make a todo_list. This could be moved into its own function to avoid duplication
-
-    // Update is done via passing in the id
-    // Need to check that the value at arguments[1] is a valid number
-    // If it is a valid number, need to check that it exists in the todo.json file in the tasks array
-    // If it does, need to then check that the update name is not empty (They need to pass in something to update it with)
-
-    //if todo_list.tasks.iter().any(|t| t.id == task_id) {
-    // Update task
-    //} else {
-    //println!("Error: There is no task with the ID: {task_id}");
-    //}
+    let mut todo_list = read_todo();
+    let task_id: u64 = arguments[1].parse().unwrap_or_default();
+    if task_id == 0 {
+        println!("Error: You must provide the ID number of the task you want to update");
+    } else if let Some(task) = todo_list.tasks.iter_mut().find(|t| t.id == task_id) {
+        let updated_name = arguments[2..].join(" ");
+        task.name = updated_name;
+        println!("Updated task {task_id} successfully!");
+        write_todo(&todo_list);
+    } else {
+        println!("Error: There is no task that has the ID: {task_id}");
+    }
 }
 
 fn handle_delete(_arguments: Vec<String>) {}

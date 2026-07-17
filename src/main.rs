@@ -136,7 +136,17 @@ fn handle_update(arguments: &[String]) {
     }
 }
 
-fn handle_delete(_arguments: Vec<String>) {}
+fn handle_delete(arguments: Vec<String>) {
+    let mut todo_list = read_todo();
+    let task_id: u64 = arguments[1].parse().unwrap_or_default();
+    if task_id == 0 {
+        println!("Error: You must provide the ID number of the task you want to delete");
+    } else if let Some(task) = todo_list.tasks.iter_mut().find(|t| t.id == task_id) {
+        // remove task
+    } else {
+        // print error message
+    }
+}
 
 fn handle_mark_in_progress(_arguments: Vec<String>) {}
 

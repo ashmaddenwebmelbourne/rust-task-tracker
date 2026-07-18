@@ -72,7 +72,7 @@ fn handle_arguments(arguments: Vec<String>) {
     match first_arg.as_str() {
         "add" => handle_add(&arguments),
         "update" => handle_update(&arguments),
-        "delete" => handle_delete(arguments),
+        "delete" => handle_delete(&arguments),
         "mark-in-progress" => handle_mark_in_progress(arguments),
         "mark-done" => handle_mark_done(arguments),
         "handle_list" => handle_list(arguments),
@@ -115,8 +115,8 @@ fn handle_add(arguments: &[String]) {
             name: task_name,
             status: "todo".to_string(),
         });
-        println!("Task added to todo list");
         write_todo(&todo_list);
+        println!("Task added to todo list");
     }
 }
 
@@ -129,22 +129,31 @@ fn handle_update(arguments: &[String]) {
     } else if let Some(task) = todo_list.tasks.iter_mut().find(|t| t.id == task_id) {
         let updated_name = arguments[2..].join(" ");
         task.name = updated_name;
-        println!("Updated task {task_id} successfully!");
         write_todo(&todo_list);
+        println!("Updated task {task_id} successfully!");
     } else {
         println!("Error: There is no task that has the ID: {task_id}");
     }
 }
 
-fn handle_delete(arguments: Vec<String>) {
+// Delete a task via passing in its ID
+fn handle_delete(arguments: &[String]) {
     let mut todo_list = read_todo();
     let task_id: u64 = arguments[1].parse().unwrap_or_default();
+    let task_is_in_file = todo_list.tasks.iter().any(|t| t.id == task_id);
     if task_id == 0 {
-        println!("Error: You must provide the ID number of the task you want to delete");
-    } else if let Some(task) = todo_list.tasks.iter_mut().find(|t| t.id == task_id) {
-        // remove task
+        println!("Error: You must provide the ID number of the task you want to delete"); // Something other than a number was passed in 
+    } else if task_is_in_file {
+        // Removes task with matching ID
+        todo_list.tasks.retain(|t| t.id != task_id);
+        // Adjust the ID's of the tasks to account for task deletion (we want the ID's to always be in sequential order, with no gaps)
+        for (i, task) in todo_list.tasks.iter_mut().enumerate() {
+            task.id = i as u64 + 1;
+        }
+        write_todo(&todo_list);
+        println!("Task {task_id} successfully removed");
     } else {
-        // print error message
+        println!("Error: There is no task that has the ID: {task_id}");
     }
 }
 

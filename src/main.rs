@@ -61,7 +61,7 @@ fn valid_first_argument(arguments: &[String]) -> Result<(), &str> {
         if VALID_FIRST_ARGUMENTS.contains(&first_arg.as_str()) {
             Ok(())
         } else {
-            Err("Error: Invalid first argument to this program: {first_arg}")
+            Err("Error: Invalid first argument to this program")
         }
     }
 }
@@ -73,7 +73,7 @@ fn handle_arguments(arguments: Vec<String>) {
         "add" => handle_add(&arguments),
         "update" => handle_update(&arguments),
         "delete" => handle_delete(&arguments),
-        "mark-in-progress" => handle_mark_in_progress(arguments),
+        "mark-in-progress" => handle_mark_in_progress(&arguments),
         "mark-done" => handle_mark_done(arguments),
         "handle_list" => handle_list(arguments),
         _ => println!("Error: Invalid argument provided: {first_arg}"),
@@ -157,7 +157,28 @@ fn handle_delete(arguments: &[String]) {
     }
 }
 
-fn handle_mark_in_progress(_arguments: Vec<String>) {}
+// Update the status of a task to 'in-progress' via passing in its ID
+fn handle_mark_in_progress(arguments: &[String]) {
+    let mut todo_list = read_todo();
+    let task_id: u64 = arguments[1].parse().unwrap_or_default();
+    let task_is_in_file = todo_list.tasks.iter().any(|t| t.id == task_id);
+    if task_id == 0 {
+        println!(
+            "Error: You must provide the ID number of the task you want to mark as 'in progress'"
+        );
+    } else if task_is_in_file {
+        for task in &mut todo_list.tasks {
+            if task.id == task_id {
+                task.status = String::from("in-progress");
+                break;
+            }
+        }
+        write_todo(&todo_list);
+        println!("Status for task {task_id} updated successfully");
+    } else {
+        println!("Error: There is no task that has the ID: {task_id}");
+    }
+}
 
 fn handle_mark_done(_arguments: Vec<String>) {}
 

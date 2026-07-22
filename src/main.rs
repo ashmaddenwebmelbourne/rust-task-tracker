@@ -74,7 +74,7 @@ fn handle_arguments(arguments: Vec<String>) {
         "update" => handle_update(&arguments),
         "delete" => handle_delete(&arguments),
         "mark-in-progress" => handle_mark_in_progress(&arguments),
-        "mark-done" => handle_mark_done(arguments),
+        "mark-done" => handle_mark_done(&arguments),
         "handle_list" => handle_list(arguments),
         _ => println!("Error: Invalid argument provided: {first_arg}"),
     }
@@ -180,7 +180,28 @@ fn handle_mark_in_progress(arguments: &[String]) {
     }
 }
 
-fn handle_mark_done(_arguments: Vec<String>) {}
+// Update the status of a task to 'done' via passing in its ID
+fn handle_mark_done(arguments: &[String]) {
+    let mut todo_list = read_todo();
+    let task_id: u64 = arguments[1].parse().unwrap_or_default();
+    let task_is_in_file = todo_list.tasks.iter().any(|t| t.id == task_id);
+    if task_id == 0 {
+        println!(
+            "Error: You must provide the ID number of the task you want to mark as 'in progress'"
+        );
+    } else if task_is_in_file {
+        for task in &mut todo_list.tasks {
+            if task.id == task_id {
+                task.status = String::from("done");
+                break;
+            }
+        }
+        write_todo(&todo_list);
+        println!("Status for task {task_id} updated successfully");
+    } else {
+        println!("Error: There is no task that has the ID: {task_id}");
+    }
+}
 
 // TODO This should check for additional arguments after list command, such as done, todo , in-progress and pass them off accordingly.
 fn handle_list(_arguments: Vec<String>) {}

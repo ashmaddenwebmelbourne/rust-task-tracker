@@ -1,6 +1,6 @@
 /*
 Todo
-Complete handle_delete function
+Complete validate_todo_list_file function
 */
 
 use serde::{Deserialize, Serialize};
@@ -88,7 +88,12 @@ fn create_blank_todo_list() {
 }
 
 // If todo.json is not empty, this function checks that the file is in the correct format.
-fn validate_todo_list_file() {}
+fn validate_todo_list_file() {
+    let mut todo_list = read_todo();
+    // Check if tasks array exists
+    // If it does, check that all task objects in the array contain the correct fields, ID, name and status. None should be blank
+    // If it does not, return an error that the file must have a 'tasks' array
+}
 
 // Reads the todo.json file and returns a parsed data structure representing the JSON file
 fn read_todo() -> TodoList {

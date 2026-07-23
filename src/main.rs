@@ -29,7 +29,7 @@ const VALID_FIRST_ARGUMENTS: [&str; 6] = [
     "list",
 ];
 
-const _VALID_LIST_ARGUMENTS: [&str; 3] = ["done", "todo", "in-progress"];
+const VALID_LIST_ARGUMENTS: [&str; 3] = ["done", "todo", "in-progress"];
 
 fn main() {
     let file = Path::new("todo.json");
@@ -44,7 +44,7 @@ fn main() {
         }
 
         match valid_first_argument(&command_line_arguments) {
-            Ok(()) => handle_arguments(command_line_arguments),
+            Ok(()) => handle_arguments(&command_line_arguments),
             Err(error_message) => println!("{error_message}"),
         }
     } else {
@@ -67,15 +67,15 @@ fn valid_first_argument(arguments: &[String]) -> Result<(), &str> {
 }
 
 // If the first command line argument is a valid argument, this function hands the command line arguments off to their respective handlers for execution.
-fn handle_arguments(arguments: Vec<String>) {
+fn handle_arguments(arguments: &[String]) {
     let first_arg = &arguments[0].to_lowercase();
     match first_arg.as_str() {
-        "add" => handle_add(&arguments),
-        "update" => handle_update(&arguments),
-        "delete" => handle_delete(&arguments),
-        "mark-in-progress" => handle_mark_in_progress(&arguments),
-        "mark-done" => handle_mark_done(&arguments),
-        "handle_list" => handle_list(arguments),
+        "add" => handle_add(arguments),
+        "update" => handle_update(arguments),
+        "delete" => handle_delete(arguments),
+        "mark-in-progress" => handle_mark_in_progress(arguments),
+        "mark-done" => handle_mark_done(arguments),
+        "list" => handle_list(arguments),
         _ => println!("Error: Invalid argument provided: {first_arg}"),
     }
 }
@@ -203,11 +203,33 @@ fn handle_mark_done(arguments: &[String]) {
     }
 }
 
-// TODO This should check for additional arguments after list command, such as done, todo , in-progress and pass them off accordingly.
-fn handle_list(_arguments: Vec<String>) {}
-
-fn _handle_list_done(_arguments: Vec<String>) {}
-
-fn _handle_list_todo(_arguments: Vec<String>) {}
-
-fn _handle_list_in_progress(_arguments: Vec<String>) {}
+// Either lists out all the tasks in todo.json or lists them out by status
+fn handle_list(arguments: &[String]) {
+    let mut todo_list = read_todo();
+    if todo_list.tasks.is_empty() {
+        println!("Error: There are no tasks to list. Please add a task to continue");
+    } else if arguments.len() == 1 {
+        for task in &mut todo_list.tasks {
+            println!(
+                "ID: {}, Name: {}, Status: {}",
+                task.id, task.name, task.status
+            );
+        }
+    } else {
+        let task_status = &arguments[1];
+        if VALID_LIST_ARGUMENTS.contains(&task_status.as_str()) {
+            for task in &mut todo_list.tasks {
+                if &task.status == task_status {
+                    println!(
+                        "ID: {}, Name: {}, Status: {}",
+                        task.id, task.name, task.status
+                    );
+                }
+            }
+        } else {
+            println!(
+                "Error: The argument provided after 'list' must be 'done', 'todo' or 'in-progress'. You provided '{task_status}'"
+            );
+        }
+    }
+}
